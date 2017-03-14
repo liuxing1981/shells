@@ -1,0 +1,16 @@
+if [ "$1" = "start" ] || [ "$1" = "restart" ] || [ -z "$1" ];then
+	FILE=/tmp/vpnhtml
+	curl https://get.freevpnss.me/ -s -o $FILE 
+	PASSWORD=$(cat $FILE | grep "<p>密<span class=\"hidden\">d</span>码" | perl -e 'while(<>) {$_=~/(\d+)/; print $1;}')
+	docker rm -f ssclient 2>/dev/null
+	sudo docker run -d --rm -p 7071:7000 \
+	  --name=ssclient \
+	  -e SS_HOST=us.ssip.club \
+	  -e SS_PORT=443 \
+	  -e SS_PASSWORD=$PASSWORD \
+	  jesset/shadowsocks-client
+	echo "shadowsocks started"
+elif [ "$1" == "stop" ];then
+	docker rm -f ssclient 2>/dev/null  && echo "shadowsocks stopped!"
+fi
+
